@@ -18,8 +18,8 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import java.sql.*;
 
-public class MovieRecommendation {
 
+public class Main {
     public static class UserRatingMapper extends Mapper<Object, Text, Text, Text> {
 
         private Text outKey = new Text();
@@ -74,7 +74,7 @@ public class MovieRecommendation {
         }
     }
 
-    public class Main {
+
         public static void main(String[] args) throws Exception {
             Configuration conf = new Configuration();
             Job job = Job.getInstance(conf, "movie recommendation");
@@ -88,4 +88,3 @@ public class MovieRecommendation {
             System.exit(job.waitForCompletion(true) ? 0 : 1);
         }
     }
-}

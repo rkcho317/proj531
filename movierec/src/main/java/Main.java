@@ -20,7 +20,7 @@ import java.sql.*;
 
 
 public class Main {
-    public static class UserRatingMapper extends Mapper<Object, Text, Text, Text> {
+   /* public static class UserRatingMapper extends Mapper<Object, Text, Text, Text> {
 
         private Text outKey = new Text();
         private Text outValue = new Text();
@@ -35,7 +35,7 @@ public class Main {
             outValue.set(movieId + ":" + rating);
             context.write(outKey, outValue);
         }
-    }
+    }*/
 
     public static class UserRatingReducer extends Reducer<Text, Text, Text, Text> {
 

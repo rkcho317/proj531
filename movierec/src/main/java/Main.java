@@ -40,7 +40,7 @@ public class Main {
             outValue.set(movieId + ":" + rating);
             context.write(outKey, outValue);
         }
-    } // added this closing curly brace
+    }
 
     public static class UserRatingReducer extends Reducer<Text, Text, Text, Text> {
 

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
@@ -16,11 +17,15 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import java.sql.*;
 
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SparkSession;
 
 public class Main {
-   /* public static class UserRatingMapper extends Mapper<Object, Text, Text, Text> {
+    public static class UserRatingMapper extends Mapper<Object, Text, Text, Text> {
 
         private Text outKey = new Text();
         private Text outValue = new Text();
@@ -35,7 +40,7 @@ public class Main {
             outValue.set(movieId + ":" + rating);
             context.write(outKey, outValue);
         }
-    }*/
+    } // added this closing curly brace
 
     public static class UserRatingReducer extends Reducer<Text, Text, Text, Text> {
 
@@ -74,17 +79,60 @@ public class Main {
         }
     }
 
+    public static void main(String[] args) throws Exception {
+        SparkConf conf = new SparkConf().setAppName("movie_recommendation").setMaster("local");
+        JavaSparkContext sc = new JavaSparkContext(conf);
+        SparkSession spark = SparkSession.builder().appName("movie_recommendation").getOrCreate();
 
-        public static void main(String[] args) throws Exception {
-            Configuration conf = new Configuration();
-            Job job = Job.getInstance(conf, "movie recommendation");
-            job.setJarByClass(MovieRecommendation.class);
-            job.setMapperClass(UserRatingMapper.class);
-            job.setReducerClass(UserRatingReducer.class);
-            job.setOutputKeyClass(Text.class);
-            job.setOutputValueClass(Text.class);
-            FileInputFormat.addInputPath(job, new Path(args[0]));
-            FileOutputFormat.setOutputPath(job, new Path(args[1]));
-            System.exit(job.waitForCompletion(true) ? 0 : 1);
-        }
+        Dataset<Row> name_basics_df = spark.read()
+                .option("header", true)
+                .option("sep", "\t")
+                .option("inferSchema", true)
+                .csv("name.basics.tsv.gz");
+
+        Dataset<Row > title_akas_df = spark.read()
+                .option("header", true)
+                .option("sep", "\t")
+                .option("inferSchema", true)
+                .csv("title.akas.tsv.gz");
+
+        Dataset<Row> title_basics_df = spark.read()
+                .option("header", true)
+                .option("sep", "\t")
+                .option("inferSchema", true)
+                .csv("title.basics.tsv.gz");
+
+        Dataset<Row> title_crew_df = spark.read()
+                .option("header", true)
+                .option("sep", "\t")
+                .option("inferSchema", true)
+                .csv("title.crew.tsv.gz");
+
+        Dataset<Row> title_episode_df = spark.read()
+                .option("header", true)
+                .option("sep", "\t")
+                .option("inferSchema", true)
+                .csv("title.episode.tsv.gz");
+
+        Dataset<Row> title_principals_df = spark.read()
+                .option("header", true)
+                .option("sep", "\t")
+                .option("inferSchema", true)
+                .csv("title.principals.tsv.gz");
+
+        Dataset<Row> title_ratings_df = spark.read()
+                .option("header", true)
+                .option("sep", "\t")
+                .option("inferSchema", true)
+                .csv("title.ratings.tsv.gz");
+
+        name_basics_df.show();
+        title_akas_df.show();
+        title_basics_df.show();
+        title_crew_df.show();
+        title_episode_df.show();
+        title_principals_df.show();
+        title_ratings_df.show();
+
+    }
     }

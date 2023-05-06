@@ -197,4 +197,53 @@ public class Main {
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
+
+    public static void main(String[] args) throws Exception {
+        // Create a Hadoop job configuration
+        Configuration conf = new Configuration();
+        Job job = Job.getInstance(conf, "Movie Recommender");
+
+        // Set the classes for the job
+        job.setJarByClass(MovieRecommender.class);
+        job.setMapperClass(MovieRecommender.UserMapper.class);
+        job.setReducerClass(MovieRecommender.UserReducer.class);
+
+        // Set the output key and value classes for the mapper
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(Text.class);
+
+        // Set the output key and value classes for the reducer
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);
+
+        // Set the input and output paths
+        FileInputFormat.addInputPath(job, new Path("input/user_data.txt"));
+        FileOutputFormat.setOutputPath(job, new Path("output/temp"));
+
+        // Execute the job and wait for completion
+        job.waitForCompletion(true);
+
+        // Create a new job for movie recommendation
+        Job recommendationJob = Job.getInstance(conf, "Movie Recommendation");
+
+        // Set the classes for the recommendation job
+        recommendationJob.setJarByClass(MovieRecommender.class);
+        recommendationJob.setMapperClass(MovieRecommender.MovieMapper.class);
+        recommendationJob.setReducerClass(MovieRecommender.MovieReducer.class);
+
+        // Set the output key and value classes for the mapper
+        recommendationJob.setMapOutputKeyClass(Text.class);
+        recommendationJob.setMapOutputValueClass(Text.class);
+
+        // Set the output key and value classes for the reducer
+        recommendationJob.setOutputKeyClass(Text.class);
+        recommendationJob.setOutputValueClass(Text.class);
+
+        // Set the input and output paths
+        FileInputFormat.addInputPath(recommendationJob, new Path("input/movie_data.txt"));
+        FileOutputFormat.setOutputPath(recommendationJob, new Path("output/recommendations"));
+
+        // Execute the recommendation job and wait for completion
+        recommendationJob.waitForCompletion(true);
+    }
     }

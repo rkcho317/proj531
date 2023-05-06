@@ -9,7 +9,6 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import main.java
 
 public class NewUser {
     public static class UserMapper extends Mapper<Object, Text, Text, Text> {

@@ -9,8 +9,13 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 public class NewUser {
+
     public static class UserMapper extends Mapper<Object, Text, Text, Text> {
 
         private Text outKey = new Text();
@@ -35,40 +40,28 @@ public class NewUser {
                 throws IOException, InterruptedException {
             // Get the new user data and write it to a database
             Configuration config = context.getConfiguration();
-            FileSystem fs = FileSystem.get(config);
-            Path dbPath = new Path(config.get("dbPath"));
-            Path newUserPath = new Path(dbPath, "new_user.txt");
-            String newUser = "";
-            for (Text value : values) {
-                newUser = value.toString();
+            String dbUrl = config.get("dbUrl");
+            String dbUser = config.get("dbUser");
+            String dbPassword = config.get("dbPassword");
+
+            try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword)) {
+                String insertQuery = "INSERT INTO users (user_data) VALUES (?)";
+                PreparedStatement pstmt = conn.prepareStatement(insertQuery);
+
+                for (Text value : values) {
+                    String newUser = value.toString();
+                    pstmt.setString(1, newUser);
+                    pstmt.executeUpdate();
+                }
+
+                outKey.set("newUserCreated");
+                outValue.set("New users added to the database");
+                context.write(outKey, outValue);
+            } catch (SQLException e) {
+                // Handle any database errors
+                e.printStackTrace();
             }
-            fs.create(newUserPath);
-            fs.append(newUserPath, newUser.getBytes(), newUser.getBytes().length);
-            outKey.set("newUserCreated");
-            outValue.set(newUser);
-            context.write(outKey, outValue);
         }
+
     }
-
-    /* public static void main(String[] args) throws Exception {
-        Configuration config = new Configuration();
-        config.set("dbPath", args[0]);
-
-        Job job = Job.getInstance(config, "NewUser");
-        job.setJarByClass(NewUser.class);
-
-        job.setInputFormatClass(TextInputFormat.class);
-        job.setOutputFormatClass(TextOutputFormat.class);
-
-        job.setMapperClass(UserMapper.class);
-        job.setReducerClass(UserReducer.class);
-
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(Text.class);
-
-        TextInputFormat.addInputPath(job, new Path(args[1]));
-        TextOutputFormat.setOutputPath(job, new Path(args[2]));
-
-        System.exit(job.waitForCompletion(true) ? 0 : 1);
-    } */
 }
